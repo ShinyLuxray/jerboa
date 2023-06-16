@@ -10,10 +10,15 @@ android {
     defaultConfig {
         applicationId "com.jerboa"
         namespace "com.jerboa"
-        minSdk 26
+        minSdk 21
         targetSdk 33
+<<<<<<< HEAD
         versionCode 34
         versionName "0.0.34"
+=======
+        versionCode 32
+        versionName "0.0.32-rentler-lollipop-fork"
+>>>>>>> origin/lollipop-support
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -55,6 +60,7 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled true
     }
     kotlinOptions {
         jvmTarget = '17'
@@ -131,6 +137,12 @@ dependencies {
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.4.3'
     debugImplementation 'androidx.compose.ui:ui-tooling:1.4.3'
     debugImplementation 'androidx.compose.ui:ui-test-manifest:1.4.3'
+<<<<<<< HEAD
     implementation "net.engawapg.lib:zoomable:1.4.3"
     implementation 'androidx.browser:browser:1.5.0'
+=======
+
+    //for 5.0 compatibility with time functions
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.3'
+>>>>>>> origin/lollipop-support
 }

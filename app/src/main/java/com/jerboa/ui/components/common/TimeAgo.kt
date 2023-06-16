@@ -1,9 +1,13 @@
 package com.jerboa.ui.components.common
 
+<<<<<<< HEAD
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+=======
+
+>>>>>>> origin/lollipop-support
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -69,14 +73,22 @@ fun TimeAgo(
     }
 }
 
+
 fun dateStringToPretty(dateStr: String, includeAgo: Boolean = false): String {
-    val publishedDate = Date.from(Instant.parse(dateStr + "Z"))
+    //if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+    //    return dateStr
+    //}
+
+    val publishedDate =
+        Date.from(Instant.parse(dateStr + "Z"))
+
     val prettyPublished = prettyTime.formatDuration(publishedDate)
 
     return if (includeAgo) {
         prettyPublished
     } else {
         prettyTimeShortener(prettyPublished)
+
     }
 }
 
