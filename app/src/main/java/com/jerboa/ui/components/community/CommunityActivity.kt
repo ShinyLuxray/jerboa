@@ -19,6 +19,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -32,6 +34,7 @@ import com.jerboa.VoteType
 import com.jerboa.db.AccountViewModel
 import com.jerboa.db.AppSettingsViewModel
 import com.jerboa.loginFirstToast
+import com.jerboa.openLink
 import com.jerboa.scrollToTop
 import com.jerboa.ui.components.common.BottomAppBarAll
 import com.jerboa.ui.components.common.getCurrentAccount
@@ -63,6 +66,7 @@ fun CommunityActivity(
     val ctx = LocalContext.current
     val account = getCurrentAccount(accountViewModel)
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val appSettings by appSettingsViewModel.appSettings.observeAsState()
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -166,6 +170,14 @@ fun CommunityActivity(
                             ctx = ctx,
                         )
                     }
+                },
+                onLinkClick = { url ->
+                    openLink(
+                        url,
+                        navController,
+                        appSettings?.useCustomTabs ?: true,
+                        appSettings?.usePrivateTabs ?: false,
+                    )
                 },
                 onReportClick = { postView ->
                     navController.navigate("postReport/${postView.post.id}")

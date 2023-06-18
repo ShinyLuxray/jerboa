@@ -34,6 +34,7 @@ import com.jerboa.db.AppSettingsViewModel
 import com.jerboa.getLocalizedStringForUserTab
 import com.jerboa.isScrolledToEnd
 import com.jerboa.loginFirstToast
+import com.jerboa.openLink
 import com.jerboa.pagerTabIndicatorOffset2
 import com.jerboa.scrollToTop
 import com.jerboa.ui.components.comment.CommentNodes
@@ -384,6 +385,14 @@ fun UserTabs(
                                     ctx = ctx,
                                 )
                             }
+                        },
+                        onLinkClick = {
+                            openLink(
+                                it,
+                                navController,
+                                appSettingsViewModel.appSettings.value?.useCustomTabs ?: true,
+                                appSettingsViewModel.appSettings.value?.usePrivateTabs ?: false,
+                            )
                         },
                         loading = personProfileViewModel.loading.value &&
                             personProfileViewModel.page.value == 1 &&

@@ -48,6 +48,7 @@ import com.jerboa.ui.components.common.getPostViewMode
 import com.jerboa.ui.components.post.PostListings
 import com.jerboa.ui.components.post.edit.PostEditViewModel
 import kotlinx.coroutines.CoroutineScope
+import com.jerboa.openLink
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -261,6 +262,14 @@ fun MainPostListingsContent(
                 account = account,
                 clear = true,
                 ctx = ctx,
+            )
+        },
+        onLinkClick = {
+            openLink(
+                it,
+                navController,
+                appSettingsViewModel.appSettings.value?.useCustomTabs ?: true,
+                appSettingsViewModel.appSettings.value?.usePrivateTabs ?: false
             )
         },
         loading = homeViewModel.loading.value &&
