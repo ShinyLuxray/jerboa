@@ -1,4 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
 
 package com.jerboa.ui.components.post.edit
 
@@ -27,10 +26,12 @@ import com.jerboa.R
 import com.jerboa.db.Account
 import com.jerboa.ui.components.common.MarkdownTextField
 import com.jerboa.ui.components.common.PickImage
+import com.jerboa.ui.components.post.composables.CheckboxIsNsfw
 import com.jerboa.ui.theme.MEDIUM_PADDING
 import com.jerboa.validatePostName
 import com.jerboa.validateUrl
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditPostHeader(
     navController: NavController = rememberNavController(),
@@ -78,6 +79,7 @@ fun EditPostHeader(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditPostBody(
     name: String,
@@ -90,6 +92,8 @@ fun EditPostBody(
     formValid: (valid: Boolean) -> Unit,
     account: Account?,
     modifier: Modifier = Modifier,
+    isNsfw: Boolean,
+    onIsNsfwChange: (isNsfw: Boolean) -> Unit,
 ) {
     val nameField = validatePostName(name)
     val urlField = validateUrl(url)
@@ -143,6 +147,10 @@ fun EditPostBody(
             focusImmediate = false,
             placeholder = stringResource(R.string.post_edit_body_placeholder),
         )
+        CheckboxIsNsfw(
+            checked = isNsfw,
+            onCheckedChange = onIsNsfwChange,
+        )
     }
 }
 
@@ -159,5 +167,7 @@ fun EditPostBodyPreview() {
         onPickedImage = {},
         onUrlChange = {},
         account = null,
+        isNsfw = false,
+        onIsNsfwChange = {},
     )
 }

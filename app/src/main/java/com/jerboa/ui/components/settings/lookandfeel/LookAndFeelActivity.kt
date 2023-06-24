@@ -59,8 +59,16 @@ fun LookAndFeelActivity(
     val showVotingArrowsInListViewState = rememberBooleanSettingState(
         settings?.showVotingArrowsInListView ?: true,
     )
+    val showParentCommentNavigationButtonsState = rememberBooleanSettingState(
+        settings?.showParentCommentNavigationButtons ?: true,
+    )
+    val navigateParentCommentsWithVolumeButtonsState = rememberBooleanSettingState(
+        settings?.navigateParentCommentsWithVolumeButtons ?: false,
+    )
     val useCustomTabsState = rememberBooleanSettingState(settings?.useCustomTabs ?: true)
     val usePrivateTabsState = rememberBooleanSettingState(settings?.usePrivateTabs ?: false)
+
+    val secureWindowState = rememberBooleanSettingState(settings?.secureWindow ?: false)
 
     val snackbarHostState = remember { SnackbarHostState() }
 	
@@ -79,8 +87,11 @@ fun LookAndFeelActivity(
                 showCollapsedCommentContent = showCollapsedCommentContentState.value,
                 showCommentActionBarByDefault = showCommentActionBarByDefaultState.value,
                 showVotingArrowsInListView = showVotingArrowsInListViewState.value,
+                showParentCommentNavigationButtons = showParentCommentNavigationButtonsState.value,
+                navigateParentCommentsWithVolumeButtons = navigateParentCommentsWithVolumeButtonsState.value,
                 useCustomTabs = useCustomTabsState.value,
                 usePrivateTabs = usePrivateTabsState.value,
+                secureWindow = secureWindowState.value,
             ),
         )
     }
@@ -135,7 +146,7 @@ fun LookAndFeelActivity(
                 )
                 SettingsList(
                     state = themeColorState,
-                    items = ThemeColor.values().map { it.name },
+                    items = ThemeColor.values().map { stringResource(it.mode) },
                     icon = {
                         Icon(
                             imageVector = Icons.Outlined.Colorize,
@@ -196,6 +207,20 @@ fun LookAndFeelActivity(
                     onCheckedChange = { updateAppSettings() },
                 )
                 SettingsCheckbox(
+                    state = showParentCommentNavigationButtonsState,
+                    title = {
+                        Text(text = stringResource(R.string.look_and_feel_show_parent_comment_navigation_buttons))
+                    },
+                    onCheckedChange = { updateAppSettings() },
+                )
+                SettingsCheckbox(
+                    state = navigateParentCommentsWithVolumeButtonsState,
+                    title = {
+                        Text(text = stringResource(R.string.look_and_feel_navigate_parent_comments_with_volume_buttons))
+                    },
+                    onCheckedChange = { updateAppSettings() },
+                )
+                SettingsCheckbox(
                     state = useCustomTabsState,
                     title = {
                         Text(text = stringResource(id = R.string.look_and_feel_use_custom_tabs))
@@ -206,6 +231,13 @@ fun LookAndFeelActivity(
                     state = usePrivateTabsState,
                     title = {
                         Text(text = stringResource(id = R.string.look_and_feel_use_private_tabs))
+                    },
+                    onCheckedChange = { updateAppSettings() },
+                )
+                SettingsCheckbox(
+                    state = secureWindowState,
+                    title = {
+                        Text(text = stringResource(R.string.look_and_feel_secure_window))
                     },
                     onCheckedChange = { updateAppSettings() },
                 )

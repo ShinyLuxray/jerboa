@@ -19,6 +19,7 @@ import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.CommentsDisabled
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Flag
@@ -46,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -63,19 +65,21 @@ import com.jerboa.R
 import com.jerboa.VoteType
 import com.jerboa.calculateNewInstantScores
 import com.jerboa.communityNameShown
-import com.jerboa.datatypes.CommunitySafe
-import com.jerboa.datatypes.PersonSafe
-import com.jerboa.datatypes.Post
-import com.jerboa.datatypes.PostView
+import com.jerboa.copyToClipboard
 import com.jerboa.datatypes.sampleImagePostView
 import com.jerboa.datatypes.sampleLinkNoThumbnailPostView
 import com.jerboa.datatypes.sampleLinkPostView
 import com.jerboa.datatypes.samplePostView
+import com.jerboa.datatypes.types.Community
+import com.jerboa.datatypes.types.Person
+import com.jerboa.datatypes.types.Post
+import com.jerboa.datatypes.types.PostView
 import com.jerboa.db.Account
 import com.jerboa.hostName
 import com.jerboa.isImage
 import com.jerboa.isSameInstance
 import com.jerboa.nsfwCheck
+import com.jerboa.openLink
 import com.jerboa.ui.components.common.ActionBarButton
 import com.jerboa.ui.components.common.CircularIcon
 import com.jerboa.ui.components.common.CommentOrPostNodeHeader
@@ -83,6 +87,7 @@ import com.jerboa.ui.components.common.DotSpacer
 import com.jerboa.ui.components.common.IconAndTextDrawerItem
 import com.jerboa.ui.components.common.ImageViewerDialog
 import com.jerboa.ui.components.common.MyMarkdownText
+import com.jerboa.ui.components.common.NsfwBadge
 import com.jerboa.ui.components.common.PictrsThumbnailImage
 import com.jerboa.ui.components.common.PictrsUrlImage
 import com.jerboa.ui.components.common.PreviewLines
@@ -111,7 +116,7 @@ fun PostHeaderLine(
     postView: PostView,
     myVote: Int?,
     score: Int,
-    onCommunityClick: (community: CommunitySafe) -> Unit,
+    onCommunityClick: (community: Community) -> Unit,
     onPersonClick: (personId: Int) -> Unit,
     isModerator: Boolean,
     modifier: Modifier = Modifier,
@@ -195,6 +200,7 @@ fun PostHeaderLine(
                 myVote = myVote,
                 published = postView.post.published,
                 updated = postView.post.updated,
+                isNsfw = nsfwCheck(postView),
             )
         }
         Row {
@@ -255,7 +261,8 @@ fun PostTitleBlock(
     postView: PostView,
     expandedImage: Boolean,
     account: Account?,
-    onLinkClick: (url: String) -> Unit,
+    useCustomTabs: Boolean,
+    usePrivateTabs: Boolean,
 ) {
     val imagePost = postView.post.url?.let { isImage(it) } ?: run { false }
 
@@ -267,7 +274,9 @@ fun PostTitleBlock(
         PostTitleAndThumbnail(
             postView = postView,
             account = account,
-            onLinkClick = onLinkClick,
+            useCustomTabs = useCustomTabs,
+            usePrivateTabs = usePrivateTabs,
+
         )
     }
 }
@@ -292,6 +301,7 @@ fun PostName(
         text = postView.post.name,
         style = MaterialTheme.typography.titleLarge,
         color = color,
+        modifier = Modifier.testTag("jerboa:posttitle"),
     )
 }
 
@@ -334,7 +344,8 @@ fun PostTitleAndImageLink(
 fun PostTitleAndThumbnail(
     postView: PostView,
     account: Account?,
-    onLinkClick: (url: String) -> Unit,
+    useCustomTabs: Boolean,
+    usePrivateTabs: Boolean,
 ) {
     Column(
         modifier = Modifier.padding(horizontal = MEDIUM_PADDING),
@@ -361,7 +372,11 @@ fun PostTitleAndThumbnail(
                     }
                 }
             }
-            ThumbnailTile(postView = postView, onLinkClick)
+            ThumbnailTile(
+                postView = postView,
+                useCustomTabs = useCustomTabs,
+                usePrivateTabs = usePrivateTabs,
+            )
         }
     }
 }
@@ -372,7 +387,8 @@ fun PostBody(
     fullBody: Boolean,
     expandedImage: Boolean,
     account: Account?,
-    onLinkClick: (url: String) -> Unit,
+    useCustomTabs: Boolean,
+    usePrivateTabs: Boolean,
 ) {
     val post = postView.post
     Column(
@@ -382,7 +398,8 @@ fun PostBody(
             postView = postView,
             expandedImage = expandedImage,
             account = account,
-            onLinkClick = onLinkClick,
+            useCustomTabs = useCustomTabs,
+            usePrivateTabs = usePrivateTabs,
         )
 
         // The metadata card
@@ -433,7 +450,8 @@ fun PreviewStoryTitleAndMetadata() {
         fullBody = false,
         expandedImage = false,
         account = null,
-        onLinkClick = {},
+        useCustomTabs = false,
+        usePrivateTabs = false,
     )
 }
 
@@ -448,10 +466,10 @@ fun PostFooterLine(
     onEditPostClick: (postView: PostView) -> Unit,
     onDeletePostClick: (postView: PostView) -> Unit,
     onReportClick: (postView: PostView) -> Unit,
-    onCommunityClick: (community: CommunitySafe) -> Unit,
+    onCommunityClick: (community: Community) -> Unit,
     onPersonClick: (personId: Int) -> Unit,
-    onBlockCreatorClick: (person: PersonSafe) -> Unit,
-    onBlockCommunityClick: (community: CommunitySafe) -> Unit,
+    onBlockCreatorClick: (person: Person) -> Unit,
+    onBlockCommunityClick: (community: Community) -> Unit,
     modifier: Modifier = Modifier,
     showReply: Boolean = false,
     account: Account?,
@@ -656,6 +674,8 @@ fun PostFooterLinePreview() {
 fun PreviewPostListingCard() {
     PostListing(
         postView = samplePostView,
+        useCustomTabs = false,
+        usePrivateTabs = false,
         onUpvoteClick = {},
         onDownvoteClick = {},
         onReplyClick = {},
@@ -668,7 +688,6 @@ fun PreviewPostListingCard() {
         onPersonClick = {},
         onBlockCommunityClick = {},
         onBlockCreatorClick = {},
-        onLinkClick = {},
         isModerator = true,
         fullBody = false,
         account = null,
@@ -684,6 +703,8 @@ fun PreviewPostListingCard() {
 fun PreviewLinkPostListing() {
     PostListing(
         postView = sampleLinkPostView,
+        useCustomTabs = false,
+        usePrivateTabs = false,
         onUpvoteClick = {},
         onDownvoteClick = {},
         onReplyClick = {},
@@ -696,7 +717,6 @@ fun PreviewLinkPostListing() {
         onPersonClick = {},
         onBlockCommunityClick = {},
         onBlockCreatorClick = {},
-        onLinkClick = {},
         isModerator = false,
         fullBody = false,
         account = null,
@@ -712,6 +732,8 @@ fun PreviewLinkPostListing() {
 fun PreviewImagePostListingCard() {
     PostListing(
         postView = sampleImagePostView,
+        useCustomTabs = false,
+        usePrivateTabs = false,
         onUpvoteClick = {},
         onDownvoteClick = {},
         onReplyClick = {},
@@ -724,7 +746,6 @@ fun PreviewImagePostListingCard() {
         onPersonClick = {},
         onBlockCommunityClick = {},
         onBlockCreatorClick = {},
-        onLinkClick = {},
         isModerator = false,
         fullBody = false,
         account = null,
@@ -740,6 +761,8 @@ fun PreviewImagePostListingCard() {
 fun PreviewImagePostListingSmallCard() {
     PostListing(
         postView = sampleImagePostView,
+        useCustomTabs = false,
+        usePrivateTabs = false,
         onUpvoteClick = {},
         onDownvoteClick = {},
         onReplyClick = {},
@@ -752,7 +775,6 @@ fun PreviewImagePostListingSmallCard() {
         onPersonClick = {},
         onBlockCommunityClick = {},
         onBlockCreatorClick = {},
-        onLinkClick = {},
         isModerator = false,
         fullBody = false,
         account = null,
@@ -768,6 +790,8 @@ fun PreviewImagePostListingSmallCard() {
 fun PreviewLinkNoThumbnailPostListing() {
     PostListing(
         postView = sampleLinkNoThumbnailPostView,
+        useCustomTabs = false,
+        usePrivateTabs = false,
         onUpvoteClick = {},
         onDownvoteClick = {},
         onReplyClick = {},
@@ -780,7 +804,6 @@ fun PreviewLinkNoThumbnailPostListing() {
         onPersonClick = {},
         onBlockCommunityClick = {},
         onBlockCreatorClick = {},
-        onLinkClick = {},
         isModerator = true,
         fullBody = false,
         account = null,
@@ -794,19 +817,20 @@ fun PreviewLinkNoThumbnailPostListing() {
 @Composable
 fun PostListing(
     postView: PostView,
+    useCustomTabs: Boolean,
+    usePrivateTabs: Boolean,
     onUpvoteClick: (postView: PostView) -> Unit,
     onDownvoteClick: (postView: PostView) -> Unit,
     onReplyClick: (postView: PostView) -> Unit = {},
     onPostClick: (postView: PostView) -> Unit,
     onSaveClick: (postView: PostView) -> Unit,
-    onCommunityClick: (community: CommunitySafe) -> Unit,
+    onCommunityClick: (community: Community) -> Unit,
     onEditPostClick: (postView: PostView) -> Unit,
     onDeletePostClick: (postView: PostView) -> Unit,
     onReportClick: (postView: PostView) -> Unit,
     onPersonClick: (personId: Int) -> Unit,
-    onBlockCommunityClick: (community: CommunitySafe) -> Unit,
-    onBlockCreatorClick: (person: PersonSafe) -> Unit,
-    onLinkClick: (url: String) -> Unit,
+    onBlockCommunityClick: (community: Community) -> Unit,
+    onBlockCreatorClick: (person: Person) -> Unit,
     showReply: Boolean = false,
     isModerator: Boolean,
     showCommunityName: Boolean = true,
@@ -857,7 +881,6 @@ fun PostListing(
             onPersonClick = onPersonClick,
             onBlockCommunityClick = onBlockCommunityClick,
             onBlockCreatorClick = onBlockCreatorClick,
-            onLinkClick = onLinkClick,
             showReply = showReply,
             isModerator = isModerator,
             showCommunityName = showCommunityName,
@@ -866,7 +889,10 @@ fun PostListing(
             expandedImage = true,
             enableDownVotes = enableDownVotes,
             showAvatar = showAvatar,
+            useCustomTabs = useCustomTabs,
+            usePrivateTabs = usePrivateTabs,
         )
+
         PostViewMode.SmallCard -> PostListingCard(
             postView = postView,
             instantScores = instantScores.value,
@@ -894,7 +920,6 @@ fun PostListing(
             onPersonClick = onPersonClick,
             onBlockCommunityClick = onBlockCommunityClick,
             onBlockCreatorClick = onBlockCreatorClick,
-            onLinkClick = onLinkClick,
             showReply = showReply,
             isModerator = isModerator,
             showCommunityName = showCommunityName,
@@ -903,7 +928,10 @@ fun PostListing(
             expandedImage = false,
             enableDownVotes = enableDownVotes,
             showAvatar = showAvatar,
+            useCustomTabs = useCustomTabs,
+            usePrivateTabs = usePrivateTabs,
         )
+
         PostViewMode.List -> PostListingList(
             postView = postView,
             instantScores = instantScores.value,
@@ -924,12 +952,13 @@ fun PostListing(
             onPostClick = onPostClick,
             onCommunityClick = onCommunityClick,
             onPersonClick = onPersonClick,
-            onLinkClick = onLinkClick,
             isModerator = isModerator,
             showCommunityName = showCommunityName,
             account = account,
             showVotingArrowsInListView = showVotingArrowsInListView,
             showAvatar = showAvatar,
+            useCustomTabs = useCustomTabs,
+            usePrivateTabs = usePrivateTabs,
         )
     }
 }
@@ -987,20 +1016,23 @@ fun PostListingList(
     onUpvoteClick: (postView: PostView) -> Unit,
     onDownvoteClick: (postView: PostView) -> Unit,
     onPostClick: (postView: PostView) -> Unit,
-    onCommunityClick: (community: CommunitySafe) -> Unit,
+    onCommunityClick: (community: Community) -> Unit,
     onPersonClick: (personId: Int) -> Unit,
-    onLinkClick: (url: String) -> Unit,
     isModerator: Boolean,
     showCommunityName: Boolean = true,
     account: Account?,
     showVotingArrowsInListView: Boolean,
     showAvatar: Boolean,
+    useCustomTabs: Boolean,
+    usePrivateTabs: Boolean,
 ) {
     Column(
-        modifier = Modifier.padding(
-            horizontal = MEDIUM_PADDING,
-            vertical = MEDIUM_PADDING,
-        ),
+        modifier = Modifier
+            .padding(
+                horizontal = MEDIUM_PADDING,
+                vertical = MEDIUM_PADDING,
+            )
+            .testTag("jerboa:post"),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -1086,9 +1118,14 @@ fun PostListingList(
                         unreadCount = postView.unread_comments,
                         style = MaterialTheme.typography.bodyMedium,
                     )
+                    NsfwBadge(nsfwCheck(postView))
                 }
             }
-            ThumbnailTile(postView, onLinkClick)
+            ThumbnailTile(
+                postView = postView,
+                useCustomTabs = useCustomTabs,
+                usePrivateTabs = usePrivateTabs,
+            )
         }
     }
 }
@@ -1096,13 +1133,32 @@ fun PostListingList(
 @Composable
 private fun ThumbnailTile(
     postView: PostView,
-    onLinkClick: (url: String) -> Unit,
+    useCustomTabs: Boolean,
+    usePrivateTabs: Boolean,
 ) {
     postView.post.url?.also { url ->
+        var showImageDialog by remember { mutableStateOf(false) }
+
+        if (showImageDialog) {
+            ImageViewerDialog(url, onBackRequest = { showImageDialog = false })
+        }
+
+        // TODO weird performance issues with using a previously rendered navcontroller
+        val navController = rememberNavController()
+
         val postLinkPicMod = Modifier
             .size(POST_LINK_PIC_SIZE)
             .clickable {
-                onLinkClick(url)
+                if (isImage(url)) {
+                    showImageDialog = true
+                } else {
+                    openLink(
+                        url = url,
+                        navController = navController,
+                        useCustomTab = useCustomTabs,
+                        usePrivateTab = usePrivateTabs,
+                    )
+                }
             }
 
         postView.post.thumbnail_url?.also { thumbnail ->
@@ -1151,11 +1207,12 @@ fun PostListingListPreview() {
         onPostClick = {},
         onCommunityClick = {},
         onPersonClick = {},
-        onLinkClick = {},
         isModerator = false,
         account = null,
         showVotingArrowsInListView = true,
         showAvatar = true,
+        useCustomTabs = false,
+        usePrivateTabs = false,
     )
 }
 
@@ -1178,11 +1235,12 @@ fun PostListingListWithThumbPreview() {
         onPostClick = {},
         onCommunityClick = {},
         onPersonClick = {},
-        onLinkClick = {},
         isModerator = false,
         account = null,
         showVotingArrowsInListView = true,
         showAvatar = true,
+        useCustomTabs = false,
+        usePrivateTabs = false,
     )
 }
 
@@ -1195,15 +1253,14 @@ fun PostListingCard(
     onReplyClick: (postView: PostView) -> Unit = {},
     onPostClick: (postView: PostView) -> Unit,
     onSaveClick: (postView: PostView) -> Unit,
-    onCommunityClick: (community: CommunitySafe) -> Unit,
+    onCommunityClick: (community: Community) -> Unit,
     onEditPostClick: (postView: PostView) -> Unit,
     onDeletePostClick: (postView: PostView) -> Unit,
     onReportClick: (postView: PostView) -> Unit,
     onPersonClick: (personId: Int) -> Unit,
-    onBlockCommunityClick: (community: CommunitySafe) -> Unit,
-    onBlockCreatorClick: (person: PersonSafe) -> Unit,
+    onBlockCommunityClick: (community: Community) -> Unit,
+    onBlockCreatorClick: (person: Person) -> Unit,
     showReply: Boolean = false,
-    onLinkClick: (url: String) -> Unit,
     isModerator: Boolean,
     showCommunityName: Boolean = true,
     fullBody: Boolean,
@@ -1211,11 +1268,14 @@ fun PostListingCard(
     expandedImage: Boolean,
     enableDownVotes: Boolean,
     showAvatar: Boolean,
+    useCustomTabs: Boolean,
+    usePrivateTabs: Boolean,
 ) {
     Column(
         modifier = Modifier
             .padding(vertical = MEDIUM_PADDING)
-            .clickable { onPostClick(postView) },
+            .clickable { onPostClick(postView) }
+            .testTag("jerboa:post"),
         verticalArrangement = Arrangement.spacedBy(LARGE_PADDING),
     ) {
         // Header
@@ -1237,7 +1297,8 @@ fun PostListingCard(
             fullBody = fullBody,
             expandedImage = expandedImage,
             account = account,
-            onLinkClick = onLinkClick,
+            useCustomTabs = useCustomTabs,
+            usePrivateTabs = usePrivateTabs,
         )
 
         // Footer bar
@@ -1368,6 +1429,62 @@ fun PostOptionsDialog(
                         onDismissRequest()
                     },
                 )
+                postView.post.thumbnail_url?.also {
+                    IconAndTextDrawerItem(
+                        text = stringResource(R.string.post_listing_copy_thumbnail_link),
+                        icon = Icons.Outlined.Link,
+                        onClick = {
+                            if (copyToClipboard(ctx, postView.post.thumbnail_url, "thumbnail link")) {
+                                Toast.makeText(ctx, ctx.getString(R.string.post_listing_thumbnail_link_copied), Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(ctx, ctx.getString(R.string.generic_error), Toast.LENGTH_SHORT).show()
+                            }
+                            onDismissRequest()
+                        },
+                    )
+                }
+                postView.post.embed_description?.also {
+                    IconAndTextDrawerItem(
+                        text = stringResource(R.string.post_listing_copy_title),
+                        icon = Icons.Outlined.ContentCopy,
+                        onClick = {
+                            if (copyToClipboard(ctx, postView.post.embed_description, "post title")) {
+                                Toast.makeText(ctx, ctx.getString(R.string.post_listing_title_copied), Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(ctx, ctx.getString(R.string.generic_error), Toast.LENGTH_SHORT).show()
+                            }
+                            onDismissRequest()
+                        },
+                    )
+                }
+                postView.post.name.also {
+                    IconAndTextDrawerItem(
+                        text = stringResource(R.string.post_listing_copy_name),
+                        icon = Icons.Outlined.ContentCopy,
+                        onClick = {
+                            if (copyToClipboard(ctx, postView.post.name, "post name")) {
+                                Toast.makeText(ctx, ctx.getString(R.string.post_listing_name_copied), Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(ctx, ctx.getString(R.string.generic_error), Toast.LENGTH_SHORT).show()
+                            }
+                            onDismissRequest()
+                        },
+                    )
+                }
+                postView.post.body?.also {
+                    IconAndTextDrawerItem(
+                        text = stringResource(R.string.post_listing_copy_text),
+                        icon = Icons.Outlined.ContentCopy,
+                        onClick = {
+                            if (copyToClipboard(ctx, postView.post.body, "post text")) {
+                                Toast.makeText(ctx, ctx.getString(R.string.post_listing_text_copied), Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(ctx, ctx.getString(R.string.generic_error), Toast.LENGTH_SHORT).show()
+                            }
+                            onDismissRequest()
+                        },
+                    )
+                }
                 if (!isCreator) {
                     IconAndTextDrawerItem(
                         text = stringResource(R.string.post_listing_report_post),

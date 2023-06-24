@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
-
 package com.jerboa.ui.components.post.create
 
 import android.net.Uri
@@ -16,9 +14,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -38,12 +37,13 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.jerboa.R
-import com.jerboa.datatypes.CommunitySafe
-import com.jerboa.datatypes.sampleCommunitySafe
+import com.jerboa.datatypes.sampleCommunity
+import com.jerboa.datatypes.types.Community
 import com.jerboa.db.Account
 import com.jerboa.ui.components.common.CircularIcon
 import com.jerboa.ui.components.common.MarkdownTextField
 import com.jerboa.ui.components.common.PickImage
+import com.jerboa.ui.components.post.composables.CheckboxIsNsfw
 import com.jerboa.ui.theme.ICON_SIZE
 import com.jerboa.ui.theme.MEDIUM_PADDING
 import com.jerboa.ui.theme.THUMBNAIL_SIZE
@@ -51,6 +51,7 @@ import com.jerboa.ui.theme.muted
 import com.jerboa.validatePostName
 import com.jerboa.validateUrl
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePostHeader(
     navController: NavController = rememberNavController(),
@@ -70,13 +71,18 @@ fun CreatePostHeader(
                 onClick = onCreatePostClick,
             ) {
                 if (loading) {
+                    // TODO is this color necessary? If not, remove all of them
                     CircularProgressIndicator(
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                 } else {
-                    // Todo add are you sure cancel dialog
+                    // Todo add are you sure cancel dialog+
                     Icon(
-                        Icons.Outlined.Add,
+                        if (formValid) {
+                            Icons.Filled.Send
+                        } else {
+                            Icons.Outlined.Send
+                        },
                         contentDescription = stringResource(R.string.form_submit),
                     )
                 }
@@ -108,12 +114,15 @@ fun CreatePostBody(
     onUrlChange: (url: String) -> Unit,
     onPickedImage: (image: Uri) -> Unit,
     image: Uri? = null,
-    community: CommunitySafe? = null,
+    community: Community? = null,
     navController: NavController = rememberNavController(),
     formValid: (valid: Boolean) -> Unit,
-    suggestedTitle: String? = null,
     account: Account?,
     padding: PaddingValues,
+    suggestedTitle: String?,
+    suggestedTitleLoading: Boolean,
+    isNsfw: Boolean,
+    onIsNsfwChange: (isNsfw: Boolean) -> Unit,
 ) {
     val nameField = validatePostName(name)
     val urlField = validateUrl(url)
@@ -155,13 +164,17 @@ fun CreatePostBody(
             modifier = Modifier
                 .fillMaxWidth(),
         )
-        suggestedTitle?.also {
-            Text(
-                text = stringResource(R.string.create_post_copy_suggested_title, it),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onBackground.muted,
-                modifier = Modifier.clickable { onNameChange(it) },
-            )
+        if (suggestedTitleLoading) {
+            CircularProgressIndicator()
+        } else {
+            suggestedTitle?.let {
+                Text(
+                    text = stringResource(R.string.create_post_copy_suggested_title, it),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onBackground.muted,
+                    modifier = Modifier.clickable { onNameChange(it) },
+                )
+            }
         }
         PickImage(
             onPickedImage = onPickedImage,
@@ -227,7 +240,21 @@ fun CreatePostBody(
                     },
             )
         }
+        CheckboxIsNsfw(
+            checked = isNsfw,
+            onCheckedChange = onIsNsfwChange,
+        )
     }
+}
+
+@Preview
+@Composable
+fun CreatePostHeaderPreview() {
+    CreatePostHeader(
+        onCreatePostClick = {},
+        formValid = true,
+        loading = false,
+    )
 }
 
 @Preview
@@ -241,10 +268,14 @@ fun CreatePostBodyPreview() {
         url = "",
         onUrlChange = {},
         onPickedImage = {},
-        community = sampleCommunitySafe,
+        community = sampleCommunity,
         formValid = {},
         account = null,
         padding = PaddingValues(),
+        suggestedTitle = null,
+        suggestedTitleLoading = false,
+        isNsfw = false,
+        onIsNsfwChange = {},
     )
 }
 
@@ -261,7 +292,10 @@ fun CreatePostBodyPreviewNoCommunity() {
         onPickedImage = {},
         formValid = {},
         suggestedTitle = stringResource(R.string.create_post_a_title_here),
+        suggestedTitleLoading = false,
         account = null,
         padding = PaddingValues(),
+        isNsfw = false,
+        onIsNsfwChange = {},
     )
 }
