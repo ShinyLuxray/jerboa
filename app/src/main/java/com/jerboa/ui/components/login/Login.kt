@@ -186,7 +186,7 @@ fun LoginForm(
             onValueChange = { password = it },
         )
         Button(
-            enabled = isValid && !loading,
+            enabled = !loading,
             onClick = { onClickLogin(form, instance) },
             modifier = Modifier.padding(top = 10.dp),
         ) {

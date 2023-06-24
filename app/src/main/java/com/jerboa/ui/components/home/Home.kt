@@ -643,12 +643,20 @@ fun HomeMoreDialog(
 
 @Composable
 fun Tagline(taglines: List<Tagline>) {
-    val tagline by remember { mutableStateOf(taglines.random()) }
+    //HOTFIX
+    var finalContent = "For best results, log in to an account on a lemmy 0.17.x server or earlier, or update this app."
+    if (!taglines.isEmpty()){
+        val tagline by remember { mutableStateOf(taglines.random()) }
+        finalContent = tagline.content
+    }
+
     Column(
         Modifier.padding(LARGE_PADDING),
     ) {
         MyMarkdownText(
-            markdown = tagline.content,
+
+            markdown = finalContent,
+
             onClick = {},
         )
     }

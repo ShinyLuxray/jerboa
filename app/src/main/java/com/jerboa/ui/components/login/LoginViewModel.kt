@@ -68,14 +68,18 @@ class LoginViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 loading = false
-                val msg = ctx.getString(R.string.login_view_model_incorrect_login)
+                var msg = "Anonymous Login: Instance has been changed!"
+                if (!form.username_or_email.isEmpty()) {
+                    API.changeLemmyInstance(originalInstance)
+                    msg = ctx.getString(R.string.login_view_model_incorrect_login)
+                }
                 Log.e("login", e.toString())
                 Toast.makeText(
                     ctx,
                     msg,
                     Toast.LENGTH_SHORT,
                 ).show()
-                API.changeLemmyInstance(originalInstance)
+
                 this.cancel()
                 return@launch
             }
