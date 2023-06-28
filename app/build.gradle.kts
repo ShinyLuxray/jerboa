@@ -15,7 +15,7 @@ android {
     defaultConfig {
         applicationId = "com.jerboa"
         namespace = "com.jerboa"
-        minSdk = 26
+        minSdk = 21
         targetSdk = 33
         versionCode = 36
         versionName = "0.0.36"
@@ -75,6 +75,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "17"
@@ -159,4 +160,7 @@ dependencies {
 
     implementation("androidx.profileinstaller:profileinstaller:1.3.1")
     baselineProfile(project(":benchmarks"))
+
+    //for 5.0 compatibility with time functions
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
 }
