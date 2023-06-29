@@ -39,8 +39,16 @@ class SiteViewModel : ViewModel() {
     }
 
     fun updateFromAccount(account: Account) {
-        updateSortType(SortType.values().getOrElse(if(account.defaultSortType != null) account.defaultSortType else 0) { sortType })
-        updateListingType(ListingType.values().getOrElse(if(account.defaultListingType != null) account.defaultListingType else 0) { listingType })
+        try {
+            updateSortType(SortType.values().getOrElse(account.defaultSortType) { sortType })
+            updateListingType(ListingType.values().getOrElse(account.defaultListingType) { listingType })
+        }
+        // 0.17.x Lemmy instances may cause the default types to be null, thus fallback to default
+        catch (e: NullPointerException){
+            updateSortType(SortType.Active)
+            updateListingType(ListingType.Local)
+        }
+
     }
 
     fun getSite(
@@ -52,10 +60,18 @@ class SiteViewModel : ViewModel() {
 
             when (val res = siteRes) {
                 is ApiState.Success -> {
-                    res.data.my_user?.local_user_view?.local_user!!.let {
-                        updateSortType(if(it.default_sort_type != null) it.default_sort_type else SortType.Active)
-                        updateListingType(if(it.default_listing_type != null) it.default_listing_type else ListingType.Local)
+                    try{
+                        res.data.my_user?.local_user_view?.local_user!!.let {
+                            updateSortType(it.default_sort_type)
+                            updateListingType( it.default_listing_type)
+                        }
                     }
+                    // 0.17.x Lemmy may throw a null error for default sort types, thus fallback to default
+                    catch (e: NullPointerException) {
+                            updateSortType(SortType.Active)
+                            updateListingType(ListingType.Local)
+                    }
+
                 }
                 else -> {}
             }
