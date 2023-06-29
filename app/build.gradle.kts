@@ -18,7 +18,7 @@ android {
         minSdk = 21
         targetSdk = 33
         versionCode = 36
-        versionName = "0.0.36"
+        versionName = "0.0.36-rentlar-fork-multilogin"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
