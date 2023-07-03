@@ -1,37 +1,20 @@
 <div align="center">
 
-![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/dessalines/jerboa.svg)
-[![status-badge](https://woodpecker.join-lemmy.org/api/badges/dessalines/jerboa/status.svg)](https://woodpecker.join-lemmy.org/dessalines/jerboa)
-[![GitHub issues](https://img.shields.io/github/issues-raw/dessalines/jerboa.svg)](https://github.com/dessalines/jerboa/issues)
+![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/ShinyLuxray/jerboa-lollipop.svg)
 [![License](https://img.shields.io/github/license/dessalines/jerboa.svg)](LICENSE)
-![GitHub stars](https://img.shields.io/github/stars/dessalines/jerboa?style=social)
 
 </div>
 
 <p align="center">
   <a href="https://github.com/dessalines/jerboa" rel="noopener">
-  <img width=200px height=200px src="https://raw.githubusercontent.com/dessalines/jerboa/main/app/src/main/res/jerboa.svg"></a>
+ <img width=200px height=200px src="https://raw.githubusercontent.com/dessalines/jerboa/main/app/src/main/res/jerboa.svg"></a>
 
-  <h3 align="center"><a href="https://github.com/dessalines/jerboa">Jerboa</a></h3>
+<h3 align="center">Rentlar's fork of <a href="https://github.com/dessalines/jerboa">Jerboa</a> (Lollipop Backport)</h3>
   <p align="center">
     An Android client for <a href="https://github.com/LemmyNet/lemmy">Lemmy</a>, a federated reddit alternative
     <br />
     <br />
     <a href="https://join-lemmy.org">Join Lemmy</a>
-    ·
-    <a href="https://github.com/dessalines/jerboa/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/dessalines/jerboa/issues">Request Feature</a>
-    ·
-    <a href="https://github.com/dessalines/jerboa/blob/main/RELEASES.md">Releases</a>
-  </p>
-  <p align="center">
-    <a href="https://apt.izzysoft.de/fdroid/index/apk/com.jerboa"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="80"></a>
-    <a href="https://f-droid.org/packages/com.jerboa"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="80"></a>
-    <a href="https://play.google.com/store/apps/details?id=com.jerboa"><img src="https://cdn.rawgit.com/steverichey/google-play-badge-svg/master/img/en_get.svg" height="80"></a>
-    <a href="https://github.com/dessalines/jerboa/releases/latest"><img src="https://raw.githubusercontent.com/andOTP/andOTP/master/assets/badges/get-it-on-github.png" height="80"></a>
-  </p>
-</p>
 
 ## About Jerboa
 
@@ -40,6 +23,8 @@
 | ![img_1](./fastlane/metadata/android/en-US/images/phoneScreenshots/01.png) | ![img_2](fastlane/metadata/android/en-US/images/phoneScreenshots/02.png) |
 
 Jerboa is a native-android client for Lemmy, built using the native Android Toolkit, Jetpack Compose.
+
+Forked by Rentlar to support Android phones version 5.0 (Lollipop) through 7.x (Nougat) using Android Studio. I release my changes under AGPLv3. I may or may not update it infrequently. Everything below is from dessalines' README.
 
 **Warning**: You can submit issues, but between Lemmy and lemmy-ui, I probably won't have too much time to work on them. Learn jetpack compose like I did if you want to help make this app better.
 

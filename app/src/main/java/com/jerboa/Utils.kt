@@ -11,11 +11,13 @@ import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -1371,12 +1373,18 @@ fun getLangPreferenceDropdownEntries(ctx: Context): Map<Locale, String> {
 }
 
 fun matchLocale(localeMap: Map<Locale, String>): Locale {
-    return Locale.lookup(
-        AppCompatDelegate.getApplicationLocales().convertToLanguageRange(),
-        localeMap.keys.toList(),
-    ) ?: Locale.ENGLISH
+    return if (SDK_INT >= Build.VERSION_CODES.O) {
+        Locale.lookup(
+            AppCompatDelegate.getApplicationLocales().convertToLanguageRange(),
+            localeMap.keys.toList(),
+        ) ?: Locale.ENGLISH
+    } else {
+        //Earlier Version Compatibility
+        Locale.ENGLISH
+    }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 fun LocaleListCompat.convertToLanguageRange(): MutableList<Locale.LanguageRange> {
     val l = mutableListOf<Locale.LanguageRange>()
 

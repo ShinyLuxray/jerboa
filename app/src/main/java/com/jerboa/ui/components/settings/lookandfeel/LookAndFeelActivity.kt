@@ -1,5 +1,6 @@
 package com.jerboa.ui.components.settings.lookandfeel
 
+import android.os.Build
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Column
@@ -43,6 +44,7 @@ import com.jerboa.db.AppSettingsViewModel
 import com.jerboa.getLangPreferenceDropdownEntries
 import com.jerboa.matchLocale
 import com.jerboa.ui.components.common.SimpleTopAppBar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,7 +63,7 @@ fun LookAndFeelActivity(
         getLangPreferenceDropdownEntries(ctx)
     }
 
-    val currentAppLocale = matchLocale(localeMap)
+    val currentAppLocale = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) matchLocale(localeMap) else Locale.ENGLISH
     val langState = rememberIntSettingState(localeMap.keys.indexOf(currentAppLocale))
 
     val fontSizeState = rememberFloatSettingState(

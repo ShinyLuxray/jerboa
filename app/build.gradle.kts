@@ -13,12 +13,12 @@ android {
     compileSdk = 33
 
     defaultConfig {
-        applicationId = "com.jerboa"
+        applicationId = "com.rentlar.jerboa"
         namespace = "com.jerboa"
-        minSdk = 26
+        minSdk = 21
         targetSdk = 33
         versionCode = 38
-        versionName = "0.0.38"
+        versionName = "0.0.38-rentlar-fork"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -75,6 +75,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "17"
@@ -164,4 +165,7 @@ dependencies {
     baselineProfile(project(":benchmarks"))
 
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.5")
+
+    // for 5.0 compatibility with time functions
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
 }
